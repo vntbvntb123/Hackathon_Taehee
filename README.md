@@ -4,6 +4,28 @@
 아시아 무역·커머스 기업을 위한, **환율을 아는 AI 클라우드 비용 관리 시스템**입니다.
 클라우드 요금은 USD로 청구되므로, 사용량이 그대로여도 **환율만으로 실질 비용이 출렁입니다.**
 
+## 🖥 데모
+
+> 아래 화면은 **예시(가상) 데이터 모드**로 실행한 모습입니다. AWS 자격증명 없이도 전체 흐름이 그대로 동작합니다.
+
+**① 비용·환율 대시보드** — USD/원화 실질 비용, 환율 영향분, 사용량 vs 환율 분해, 유휴 자원, 능동 알림을 한눈에
+
+<p align="center">
+  <img src="docs/demo-1-dashboard.png" alt="CloudFX 대시보드" width="900">
+</p>
+
+**② AI 코파일럿 — 절감안 제안 (Claude Tool Use)** — "지금 뭘 정리하면 좋아?" 한마디에 Claude가 스스로 도구(`list_idle_resources → get_cost_overview → propose_savings_plan`)를 호출해 근거와 함께 실행안을 제시
+
+<p align="center">
+  <img src="docs/demo-2-ai-plan.png" alt="AI 절감안 제안" width="900">
+</p>
+
+**③ 승인 → 실제 조치 실행** — 사용자가 승인하면 EC2 중지·EBS 삭제·EIP 해제가 실행되고 절감액이 반영됩니다
+
+<p align="center">
+  <img src="docs/demo-3-approved.png" alt="승인 후 조치 완료" width="900">
+</p>
+
 ## 핵심 기능
 
 - 🤖 **AI 에이전트 (Claude tool-use)** — "20% 줄여줘"라고 하면 Claude가 **스스로 도구를 호출**해
@@ -54,7 +76,14 @@ ec2:StopInstances          ← 조치(쓰기)는 이것만
 
 ⚠️ 데모에서는 **stop(중지)만 실제 실행**됩니다. 되돌릴 수 있어 안전합니다.
 
-## 구조
+## 아키텍처
+
+<p align="center">
+  <img src="docs/cloudfx_architecture.png" alt="CloudFX 아키텍처" width="960">
+</p>
+
+요청이 들어오면 Express가 `buildSnapshot()`으로 **AWS·환율 데이터를 요청당 1회 수집**하고,
+Claude 에이전트가 그 스냅샷 위에서 도구를 호출·추론해 **절감안**을 만들며, 사용자가 승인할 때만 실제 AWS 조치가 실행됩니다.
 
 ```
 server.js          Express API: /api/overview, /api/idle, /api/action, /api/ask, /api/alerts
